@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UKS SMPN 1 WELERI</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .table {
+            margin-top: 20px;
+        }
+        #attendance-list, #clear-data, #back-button {
+            display: none;
+        }
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 400;
+        }
+        .header-image {
+            max-width: 50%; /* Sesuaikan lebar gambar sesuai kebutuhan Anda */
+            display: block;
+            margin: 0 auto 20px auto;
+            cursor: pointer; /* Gambar menjadi klikabel */
+        }
+        h2, h4 {
+            font-weight: 600;
+        }
+        label, p {
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="uks.png" alt="UKS" class="header-image img-fluid" id="operator-image">
+    <h2 class="text-center" id="form-title">UKS SMPN 1 WELERI</h2>
+    <form id="attendance-form">
+        <div class="form-group">
+            <label for="name">Nama:</label>
+            <input type="text" class="form-control" id="name" placeholder="Masukkan nama" required>
+        </div>
+        <div class="form-group">
+            <label for="class">Kelas:</label>
+            <input type="text" class="form-control" id="class" placeholder="Masukkan kelas" required>
+        </div>
+        <div class="form-group">
+            <label for="purpose">Keperluan:</label>
+            <input type="text" class="form-control" id="purpose" placeholder="Masukkan keperluan" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <div id="attendance-list" class="mt-4">
+        <h4>Daftar Presensi UKS</h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Kelas</th>
+                    <th>Waktu Kehadiran</th>
+                    <th>Keperluan</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-table-body">
+                <!-- Attendance records will be added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <button id="clear-data" class="btn btn-danger mt-3">Clear Data</button>
+    <button id="back-button" class="btn btn-secondary mt-3">Kembali</button>
+
+    <footer>
+        <p>Website ini dibuat oleh PMR SMPN 1 Weleri</p>
+    </footer>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="accessModal" tabindex="-1" role="dialog" aria-labelledby="accessModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="accessModalLabel">Masukkan Password Untuk Melanjutkan</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="access-form">
+            <div class="form-group">
+                <label for="access-code">Masukan Password</label>
+                <input type="password" class="form-control" id="access-code" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    const correctAccessCode = 'uks1';
+
+    document.getElementById('attendance-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        var name = document.getElementById('name').value;
+        var classValue = document.getElementById('class').value;
+        var purpose = document.getElementById('purpose').value;
+        var time = new Date().toLocaleString('id-ID'); // Set waktu otomatis saat form disubmit
+        
+        if (name && classValue && purpose) {
+            var attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+            attendanceRecords.push({ name: name, class: classValue, time: time, purpose: purpose });
+            localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
+            document.getElementById('attendance-form').reset();
+            alert('Kehadiran berhasil ditambahkan!');
+        } else {
+            alert('Mohon isi semua bidang.');
+        }
+    });
+
+    document.getElementById('operator-image').addEventListener('click', function(event) {
+        event.preventDefault();
+        $('#accessModal').modal('show');
+    });
+
+    document.getElementById('access-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var accessCode = document.getElementById('access-code').value;
+        if (accessCode === correctAccessCode) {
+            $('#accessModal').modal('hide');
+            document.getElementById('attendance-form').style.display = 'none';
+            document.getElementById('form-title').style.display = 'none';
+            document.getElementById('clear-data').style.display = 'block';
+            document.getElementById('back-button').style.display = 'block';
+            loadAttendanceRecords();
+            document.getElementById('attendance-list').style.display = 'block';
+        } else {
+            alert('Kode akses salah!');
+        }
+    });
+
+    document.getElementById('back-button').addEventListener('click', function() {
+        document.getElementById('attendance-form').style.display = 'block';
+        document.getElementById('form-title').style.display = 'block';
+        document.getElementById('clear-data').style.display = 'none';
+        document.getElementById('back-button').style.display = 'none';
+        document.getElementById('attendance-list').style.display = 'none';
+    });
+
+    function loadAttendanceRecords() {
+        var tableBody = document.getElementById('attendance-table-body');
+        tableBody.innerHTML = '';
+        var attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+        attendanceRecords.forEach(function(record) {
+            var row = document.createElement('tr');
+            var nameCell = document.createElement('td');
+            nameCell.textContent = record.name;
+            row.appendChild(nameCell);
+            var classCell = document.createElement('td');
+            classCell.textContent = record.class;
+            row.appendChild(classCell);
+            var timeCell = document.createElement('td');
+            timeCell.textContent = record.time;
+            row.appendChild(timeCell);
+            var purposeCell = document.createElement('td');
+            purposeCell.textContent = record.purpose;
+            row.appendChild(purposeCell);
+            tableBody.appendChild(row);
+        });
+    }
+
+    document.getElementById('clear-data').addEventListener('click', function() {
+        if (confirm('Apakah Anda yakin ingin menghapus semua data kehadiran?')) {
+            localStorage.removeItem('attendanceRecords');
+            loadAttendanceRecords();
+        }
+    });
+
+    // Show attendance form on load
+    document.getElementById('attendance-form').style.display = 'block';
+    document.getElementById('form-title').style.display = 'block';
+</script>
+
+</body>
+</html>
